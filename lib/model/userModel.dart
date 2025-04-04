@@ -8,6 +8,7 @@ class UserModel {
   String? createdAt;
   String? status;
   String? role;
+  String? userDeviceToken;
 
   UserModel({
     this.id,
@@ -19,6 +20,7 @@ class UserModel {
     this.createdAt,
     this.status,
     this.role,
+    this.userDeviceToken,
   });
 
   UserModel.fromJson(Map<String, dynamic> json) {
@@ -31,6 +33,7 @@ class UserModel {
     createdAt = json["createdAt"];
     status = json["status"];
     role = json["role"];
+    userDeviceToken = json["userDeviceToken"];
   }
 
   Map<String, dynamic> toJson() {
@@ -44,6 +47,7 @@ class UserModel {
     data["createdAt"] = createdAt;
     data["status"] = status;
     data["role"] = role;
+    data["userDeviceToken"] = userDeviceToken; // 🔥 Serialize
     return data;
   }
 }

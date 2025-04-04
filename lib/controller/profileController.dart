@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:buzzchat/data/notification_services.dart';
 import 'package:buzzchat/model/userModel.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -13,6 +14,7 @@ class Profilecontroller extends GetxController {
   FirebaseAuth auth = FirebaseAuth.instance;
   FirebaseStorage firebaseStorage = FirebaseStorage.instance;
   RxBool isLoading = false.obs;
+  NotificationServices notificationServices = NotificationServices();
   @override
   void onInit() async {
     super.onInit();
@@ -38,6 +40,7 @@ class Profilecontroller extends GetxController {
     isLoading.value = true;
 
     var imageLink = await uploadImageandDownloadUrl(imageUrl);
+    String? token = await notificationServices.getDeviceToken();
 
     var updateUser = UserModel(
       id: auth.currentUser!.uid,
@@ -49,6 +52,7 @@ class Profilecontroller extends GetxController {
           imageUrl.isEmpty ? currentUser.value.profileImage : imageLink,
       createdAt: currentUser.value.createdAt,
       status: currentUser.value.status,
+      userDeviceToken: token,
     );
 
     await firestore

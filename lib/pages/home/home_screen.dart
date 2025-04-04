@@ -1,12 +1,12 @@
 import 'package:buzzchat/config/images.dart';
 import 'package:buzzchat/config/strings.dart';
 import 'package:buzzchat/controller/authController.dart';
-import 'package:buzzchat/controller/callController.dart';
 import 'package:buzzchat/controller/changethemeController.dart';
 import 'package:buzzchat/controller/contactController.dart';
-import 'package:buzzchat/controller/groupCallController.dart';
 import 'package:buzzchat/controller/profileController.dart';
 import 'package:buzzchat/controller/statusController.dart';
+import 'package:buzzchat/data/get_server_key.dart';
+import 'package:buzzchat/data/notification_services.dart';
 import 'package:buzzchat/pages/auth/auth_page.dart';
 import 'package:buzzchat/pages/callHistory/callhistory.dart';
 import 'package:buzzchat/pages/group/group_page.dart';
@@ -27,11 +27,17 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   late TabController tabController; // Declare as late
+  NotificationServices notificationServices = NotificationServices();
+  GetServerKey getServerKey = GetServerKey();
 
   @override
   void initState() {
     super.initState();
     tabController = TabController(length: 3, vsync: this);
+    notificationServices.requestNotificationServices();
+    notificationServices.firebaseInit(context);
+    notificationServices.setUpInteractionMessage(context);
+  
   }
 
   @override
@@ -45,9 +51,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     Get.put(Profilecontroller());
     Get.put(Statuscontroller());
     Get.put(ContactController());
-    Get.put(GroupCallController());
+    // Get.put(GroupCallController());
     AuthController authController = Get.put(AuthController());
-    Get.put(Callcontroller());
+    // Get.put(Callcontroller());
     Changethemecontroller changethemecontroller = Get.put(
       Changethemecontroller(),
     );
@@ -63,8 +69,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         ),
         actions: [
           IconButton(
-            onPressed: () {
-              Get.to(SearchChatPage());
+            onPressed: () async {
+               Get.to(SearchChatPage());
+
+              // await SendnotificationService.sendNotificationUsingApi(
+              //   token:
+              //       'd9sQn4PlRWKH6yq9tjAGRn:APA91bEkuOiuG96xfBdGDmr6sTql4bQAKpXMKzKMl6aG71ZTx5hPOzo6abFpQAeokj_THFBzOFlkxJ2qHRJpGaKoGvnGTUdDPl_B5MCculP1cCr1dFvCHgM',
+              //   title: 'BuzzChat',
+              //   body: 'Send message lets do chat',
+              //   data: {'data': 'Tushar'},
+              // );
             },
             icon: Icon(Icons.search, size: 27),
           ),
@@ -78,7 +92,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 changethemecontroller.toggleTheme();
               } else if (value == 'logout') {
                 authController.logOut().then((value) {
-
                   Get.offAll(AuthPage());
                 });
               }

@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:buzzchat/controller/contactController.dart';
 import 'package:buzzchat/controller/profileController.dart';
+import 'package:buzzchat/data/sendnotification_service.dart';
 import 'package:buzzchat/model/callModel.dart';
 import 'package:buzzchat/model/chatModel.dart';
 import 'package:buzzchat/model/chatRoomModel.dart';
@@ -111,6 +112,20 @@ class Chatcontroller extends GetxController {
       await firestore.collection('chats').doc(roomId).set(roomDetails.toJson());
 
       await contactController.saveContact(targetUser);
+
+      await SendnotificationService.sendNotificationUsingApi(
+        token: targetUser.userDeviceToken,
+        title: profilecontroller.currentUser.value.name,
+        body: message,
+        data: {
+          'type': 'chat',
+          'senderId': auth.currentUser!.uid,
+          'senderName': profilecontroller.currentUser.value.name,
+          'chatId': chatId,
+          'roomId': roomId,
+          'image': imageUrl.value,
+        },
+      );
     } catch (e) {
       log(e.toString());
     } finally {

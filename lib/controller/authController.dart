@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'package:buzzchat/config/cutomMessage.dart';
 import 'package:buzzchat/controller/statusController.dart';
 import 'package:buzzchat/data/apiexception.dart';
+import 'package:buzzchat/data/notification_services.dart';
 import 'package:buzzchat/model/userModel.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -10,7 +11,7 @@ import 'package:get/get.dart';
 class AuthController extends GetxController {
   Statuscontroller statuscontroller = Get.put(Statuscontroller());
   RxBool isLoading = false.obs;
-
+  NotificationServices notificationServices = NotificationServices();
   FirebaseAuth auth = FirebaseAuth.instance;
   FirebaseFirestore firestore = FirebaseFirestore.instance;
 
@@ -18,7 +19,14 @@ class AuthController extends GetxController {
   Future<void> logIn(String email, String password) async {
     isLoading.value = true;
     try {
-      await auth.signInWithEmailAndPassword(email: email, password: password);
+      UserCredential userCredential = await auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      String? token = await notificationServices.getDeviceToken();
+      await firestore.collection('users').doc(userCredential.user!.uid).update({
+        'userDeviceToken': token,
+      });
       successMessage('Successfully login');
       Get.offAllNamed("/homePage");
     } on FirebaseAuthException catch (e) {
@@ -39,6 +47,7 @@ class AuthController extends GetxController {
         email: email,
         password: password,
       );
+      String? token = await notificationServices.getDeviceToken();
 
       String createdTime = DateTime.now().toString();
       var userData = UserModel(
@@ -47,6 +56,7 @@ class AuthController extends GetxController {
         email: email,
         about: 'Hey there, I am using BuzzChat',
         createdAt: createdTime,
+        userDeviceToken: token,
       );
       await firestore
           .collection('users')
