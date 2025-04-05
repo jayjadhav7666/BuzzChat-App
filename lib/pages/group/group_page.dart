@@ -1,4 +1,4 @@
-import 'package:buzzchat/controller/groupController.dart';
+import 'package:buzzchat/controller/groupChatController.dart';
 import 'package:buzzchat/model/groupModel.dart';
 import 'package:buzzchat/pages/group%20Chat/group_chat.dart';
 import 'package:flutter/material.dart';

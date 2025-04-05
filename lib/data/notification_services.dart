@@ -2,8 +2,10 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:app_settings/app_settings.dart';
 import 'package:buzzchat/config/cutomMessage.dart';
+import 'package:buzzchat/model/groupModel.dart';
 import 'package:buzzchat/model/userModel.dart';
 import 'package:buzzchat/pages/chat/chat_page.dart';
+import 'package:buzzchat/pages/group%20Chat/group_chat.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -64,7 +66,7 @@ class NotificationServices {
   void firebaseInit(BuildContext context) {
     FirebaseMessaging.onMessage.listen((message) {
       RemoteNotification? notification = message.notification;
-   
+
       if (kDebugMode) {
         log(notification!.title.toString());
         log(notification.body.toString());
@@ -85,6 +87,7 @@ class NotificationServices {
       showBadge: true,
       playSound: true,
     );
+
     AndroidNotificationDetails androidNotificationDetails;
     if (imageUrl != null && imageUrl.isNotEmpty) {
       final imagePath = await _downloadAndSaveImage(
@@ -135,19 +138,30 @@ class NotificationServices {
   void handleMessage(RemoteMessage message) async {
     if (message.data['type'] == 'chat') {
       String senderId = message.data['senderId'] ?? '';
+      DocumentSnapshot personChatDoc =
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(senderId)
+              .get();
+      UserModel sender = UserModel.fromJson(
+        personChatDoc.data() as Map<String, dynamic>,
+      );
 
-      // Fetch user model from Firestore (you must write this function)
-      UserModel sender = await getUserById(senderId);
-
-      // Navigate to ChatPage with GetX
       Get.offAll(() => ChatPage(userModel: sender));
-    }
-  }
+    } else if (message.data['type'] == 'group') {
+      String groupId = message.data['groupId'];
 
-  Future<UserModel> getUserById(String uid) async {
-    var doc =
-        await FirebaseFirestore.instance.collection('users').doc(uid).get();
-    return UserModel.fromJson(doc.data()!);
+      DocumentSnapshot groupDoc =
+          await FirebaseFirestore.instance
+              .collection('groups')
+              .doc(groupId)
+              .get();
+      GroupModel groupModel = GroupModel.fromJson(
+        groupDoc.data() as Map<String, dynamic>,
+      );
+
+      Get.to(() => GroupChatPage(groupModel: groupModel));
+    }
   }
 
   //for background or terminate state
@@ -171,6 +185,41 @@ class NotificationServices {
     String? token = await messaging.getToken();
     log('$token');
     return token;
+  }
+
+  //for get refresh token
+  void refreshFcmTokenListener(String userId) {
+    FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
+      final userRef = FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId);
+      await userRef.update({'userDeviceToken': newToken});
+      final groupsSnapshot =
+          await FirebaseFirestore.instance.collection('groups').get();
+
+      for (var groupDoc in groupsSnapshot.docs) {
+        List members = groupDoc.data()['members'];
+
+        // Check if current user is in this group
+        bool isUserInGroup = members.any((m) => m['id'] == userId);
+        if (!isUserInGroup) continue;
+
+        // Update only this member's token
+        List updatedMembers =
+            members.map((member) {
+              if (member['id'] == userId) {
+                return {...member, 'userDeviceToken': newToken};
+              }
+              return member;
+            }).toList();
+
+        // Update group members array
+        await FirebaseFirestore.instance
+            .collection('groups')
+            .doc(groupDoc.id)
+            .update({'members': updatedMembers});
+      }
+    });
   }
 }
 

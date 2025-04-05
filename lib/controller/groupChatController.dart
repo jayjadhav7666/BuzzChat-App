@@ -2,8 +2,10 @@ import 'dart:developer';
 import 'package:buzzchat/config/cutomMessage.dart';
 import 'package:buzzchat/config/images.dart';
 import 'package:buzzchat/controller/profileController.dart';
+import 'package:buzzchat/data/sendnotification_service.dart';
 import 'package:buzzchat/model/chatModel.dart';
 import 'package:buzzchat/model/groupModel.dart';
+import 'package:buzzchat/model/notificationmodel.dart';
 import 'package:buzzchat/model/userModel.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -57,6 +59,7 @@ class Groupcontroller extends GetxController {
         about: profilecontroller.currentUser.value.name,
         createdAt: profilecontroller.currentUser.value.createdAt,
         role: 'admin',
+        userDeviceToken: profilecontroller.currentUser.value.userDeviceToken,
       ),
     );
     try {
@@ -74,7 +77,7 @@ class Groupcontroller extends GetxController {
         'createdAt': DateTime.now().toString(),
         'createdBy': auth.currentUser!.uid,
         'timeStamp': DateTime.now().toString(),
-        'escription': description,
+        'description': description,
       });
       successMessage('Group Created Successfully');
       Get.offAllNamed('/homePage');
@@ -168,8 +171,69 @@ class Groupcontroller extends GetxController {
       'lastMessageBy': profilecontroller.currentUser.value.id,
       'lastMessageTime': lastMessageTime,
     });
+    for (var member in groupModel.members!) {
+      log('${member.id}--${auth.currentUser!.uid}');
+      if (member.id != auth.currentUser!.uid) {
+        log('send');
+        await sendGroupChatNotification(
+          token: member.userDeviceToken ?? '',
+          groupName: groupModel.name ?? '',
+          message: message,
+          groupId: groupId,
+          imageUrl: imageUrl,
+          timestamp: timestamp,
+          member: member,
+        );
+      }
+    }
     selectedImagePath.value = "";
     isLoading.value = false;
+  }
+
+  Future<void> sendGroupChatNotification({
+    required String token,
+    required String groupId,
+    required String groupName,
+    required String message,
+    required String imageUrl,
+    required DateTime timestamp,
+    required UserModel member,
+  }) async {
+    try {
+      log('${member.name}');
+      await SendnotificationService.sendNotificationUsingApi(
+        token: token,
+        title: groupName,
+        body: '${profilecontroller.currentUser.value.name}: $message',
+        data: {
+          'type': 'group',
+          'senderId': auth.currentUser!.uid,
+          'senderName': profilecontroller.currentUser.value.name,
+          'groupId': groupId,
+          'image': imageUrl,
+        },
+      );
+
+      var notification = NotificationModel(
+        id: uuid.v4(),
+        senderId: auth.currentUser!.uid,
+        senderName: profilecontroller.currentUser.value.name ?? '',
+        message: message,
+        groupId: groupId,
+        imageUrl: imageUrl,
+        type: 'group',
+        timestamp: timestamp.toIso8601String(),
+      );
+
+      await firestore
+          .collection('users')
+          .doc(member.id) // Optional: or use userId if needed
+          .collection('group_msg_noti')
+          .doc(notification.id)
+          .set(notification.toJson());
+    } catch (e) {
+      log("Group Notification Error: $e");
+    }
   }
 
   Stream<List<ChatModel>> getGroupMessages(String groupId) {
@@ -391,27 +455,30 @@ class Groupcontroller extends GetxController {
   }
 
   Stream<int> getGroupUnreadMessageCount(String groupId) {
-  String? currentUserId = profilecontroller.currentUser.value.id;
-  
-  if (currentUserId == null) {
-    return Stream.value(0);
+    String? currentUserId = profilecontroller.currentUser.value.id;
+
+    if (currentUserId == null) {
+      return Stream.value(0);
+    }
+
+    return firestore
+        .collection("groups")
+        .doc(groupId)
+        .collection("messages")
+        .snapshots()
+        .map((snapshot) {
+          int unreadCount =
+              snapshot.docs.where((doc) {
+                var data = doc.data();
+
+                return data["senderId"] !=
+                        currentUserId && // Don't count own messages
+                    !(data["readBy"] ?? []).contains(
+                      currentUserId,
+                    ); // Not read by user
+              }).length;
+
+          return unreadCount;
+        });
   }
-
-  return firestore
-      .collection("groups")
-      .doc(groupId)
-      .collection("messages")
-      .snapshots()
-      .map((snapshot) {
-        int unreadCount = snapshot.docs.where((doc) {
-          var data = doc.data();
-          
-          return data["senderId"] != currentUserId && // Don't count own messages
-              !(data["readBy"] ?? []).contains(currentUserId); // Not read by user
-        }).length;
-
-        return unreadCount;
-      });
-}
-
 }

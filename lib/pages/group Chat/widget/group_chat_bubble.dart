@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:buzzchat/config/images.dart';
-import 'package:buzzchat/controller/groupController.dart';
+import 'package:buzzchat/controller/groupChatController.dart';
 import 'package:buzzchat/controller/profileController.dart';
 import 'package:buzzchat/pages/group%20Chat/widget/editDeleteGroupChat.dart';
 import 'package:cached_network_image/cached_network_image.dart';

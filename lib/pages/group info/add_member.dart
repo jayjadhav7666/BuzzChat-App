@@ -1,6 +1,6 @@
 import 'package:buzzchat/config/cutomMessage.dart';
 import 'package:buzzchat/config/images.dart';
-import 'package:buzzchat/controller/groupController.dart';
+import 'package:buzzchat/controller/groupChatController.dart';
 import 'package:buzzchat/model/groupModel.dart';
 import 'package:buzzchat/model/userModel.dart';
 import 'package:buzzchat/pages/group%20info/group_detail.dart';

@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:buzzchat/config/images.dart';
 import 'package:buzzchat/controller/groupCallController.dart';
-import 'package:buzzchat/controller/groupController.dart';
+import 'package:buzzchat/controller/groupChatController.dart';
 import 'package:buzzchat/controller/profileController.dart';
 import 'package:buzzchat/model/groupModel.dart';
 import 'package:buzzchat/model/userModel.dart';
@@ -93,43 +93,6 @@ class _GroupChatPageState extends State<GroupChatPage> {
                         ),
                       ),
 
-                      // SizedBox(
-                      //   width: 142,
-                      //   child: StreamBuilder(
-                      //     stream: chatcontroller.getStatus(
-                      //       widget.groupModel.id!,
-                      //     ),
-                      //     builder: (context, snapshot) {
-                      //       if (snapshot.connectionState ==
-                      //           ConnectionState.waiting) {
-                      //         return Text(
-                      //           "Loading...",
-                      //           style: Theme.of(context).textTheme.labelSmall!
-                      //               .copyWith(color: Colors.grey),
-                      //         );
-                      //       }
-                      //       if (!snapshot.hasData || snapshot.data == null) {
-                      //         return Text(
-                      //           "Offline",
-                      //           style: Theme.of(context).textTheme.labelSmall!
-                      //               .copyWith(color: Colors.red),
-                      //         );
-                      //       }
-                      //       return Text(
-                      //         snapshot.data!.status ?? '',
-                      //         overflow: TextOverflow.ellipsis,
-                      //         style: Theme.of(
-                      //           context,
-                      //         ).textTheme.labelSmall!.copyWith(
-                      //           color:
-                      //               snapshot.data!.status == 'Online'
-                      //                   ? Colors.green
-                      //                   : Colors.grey,
-                      //         ),
-                      //       );
-                      //     },
-                      //   ),
-                      // ),
                     ],
                   ),
                 ],

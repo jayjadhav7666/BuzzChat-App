@@ -1,5 +1,5 @@
 import 'package:buzzchat/config/images.dart';
-import 'package:buzzchat/controller/groupController.dart';
+import 'package:buzzchat/controller/groupChatController.dart';
 import 'package:buzzchat/controller/imagePicker.dart';
 import 'package:buzzchat/model/groupModel.dart';
 import 'package:buzzchat/widget/bottom_sheet.dart';

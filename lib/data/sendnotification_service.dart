@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:buzzchat/config/cutomMessage.dart';
 import 'package:buzzchat/data/get_server_key.dart';
 import 'package:http/http.dart' as http;
@@ -29,18 +30,24 @@ class SendnotificationService {
       },
     };
 
-    //hit api
-    http.Response reresponse = await http.post(
-      Uri.parse(url),
-      headers: headers,
-      body: jsonEncode(message),
-    );
+    log(message.toString());
+    try {
+      //hit api
+      http.Response reresponse = await http.post(
+        Uri.parse(url),
+        headers: headers,
+        body: jsonEncode(message),
+      );
 
-    if (reresponse.statusCode == 200) {
-      // log('message send successfully');
-    } else {
-      // log('message not send');
-      errorMessage('${reresponse.statusCode}');
+      if (reresponse.statusCode == 200) {
+        log('message send successfully');
+      } else {
+        log('message not send');
+        errorMessage('${reresponse.toString()}');
+      }
+    } catch (e) {
+      errorMessage(e.toString());
+      log(e.toString());
     }
   }
 }

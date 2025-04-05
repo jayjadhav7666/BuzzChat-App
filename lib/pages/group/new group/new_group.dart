@@ -1,7 +1,7 @@
 import 'package:buzzchat/config/cutomMessage.dart';
 import 'package:buzzchat/config/images.dart';
 import 'package:buzzchat/controller/contactController.dart';
-import 'package:buzzchat/controller/groupController.dart';
+import 'package:buzzchat/controller/groupChatController.dart';
 import 'package:buzzchat/model/userModel.dart';
 import 'package:buzzchat/pages/group/new%20group/group_title.dart';
 import 'package:buzzchat/pages/group/new%20group/selectmember.dart';

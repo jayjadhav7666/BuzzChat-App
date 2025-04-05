@@ -7,6 +7,7 @@ import 'package:buzzchat/model/callModel.dart';
 import 'package:buzzchat/model/chatModel.dart';
 import 'package:buzzchat/model/chatRoomModel.dart';
 import 'package:buzzchat/model/groupcallModel.dart';
+import 'package:buzzchat/model/notificationmodel.dart';
 import 'package:buzzchat/model/userModel.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -126,10 +127,65 @@ class Chatcontroller extends GetxController {
           'image': imageUrl.value,
         },
       );
+      //for notification sending or store in firebase
+      await sendChatNotification(
+        targetUser: targetUser,
+        message: message,
+        chatId: chatId,
+        roomId: roomId,
+        imageUrl: imageUrl.value,
+        timestamp: timestamp,
+      );
     } catch (e) {
       log(e.toString());
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  Future<void> sendChatNotification({
+    required UserModel targetUser,
+    required String message,
+    required String chatId,
+    required String roomId,
+    required String imageUrl,
+    required DateTime timestamp,
+  }) async {
+    try {
+      await SendnotificationService.sendNotificationUsingApi(
+        token: targetUser.userDeviceToken,
+        title: profilecontroller.currentUser.value.name ?? '',
+        body: message,
+        data: {
+          'type': 'chat',
+          'senderId': auth.currentUser!.uid,
+          'senderName': profilecontroller.currentUser.value.name,
+          'chatId': chatId,
+          'roomId': roomId,
+          'image': imageUrl,
+        },
+      );
+
+      var notification = NotificationModel(
+        id: uuid.v4(),
+        senderId: auth.currentUser!.uid,
+        senderName: profilecontroller.currentUser.value.name ?? '',
+        message: message,
+        roomId: roomId,
+        chatId: chatId,
+        timestamp: timestamp.toIso8601String(),
+        imageUrl: imageUrl,
+        type: 'chat',
+      );
+
+      await firestore
+          .collection('users')
+          .doc(targetUser.id)
+          .collection('msg_noti')
+          .doc(notification.id)
+          .set(notification.toJson());
+    } catch (e) {
+      log("Notification Error: $e");
     }
   }
 

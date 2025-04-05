@@ -1,5 +1,5 @@
 
-import 'package:buzzchat/controller/groupController.dart';
+import 'package:buzzchat/controller/groupChatController.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

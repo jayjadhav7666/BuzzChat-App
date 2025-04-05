@@ -2,7 +2,7 @@
 import 'dart:developer';
 import 'dart:io';
 import 'package:buzzchat/config/cutomMessage.dart';
-import 'package:buzzchat/controller/groupController.dart';
+import 'package:buzzchat/controller/groupChatController.dart';
 import 'package:buzzchat/controller/imagePicker.dart';
 import 'package:buzzchat/model/groupModel.dart';
 import 'package:buzzchat/pages/auth/widgets/primaryButton.dart';
